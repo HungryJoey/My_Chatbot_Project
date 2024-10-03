@@ -1,22 +1,26 @@
-import openai
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import pandas as pd
-from pydantic import BaseModel, EmailStr
-from typing import List, Optional
-import os
-from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
-import logging
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import sessionmaker
+from pydantic import BaseModel, EmailStr
+from typing import List, Optional
+from dotenv import load_dotenv
+from datetime import datetime
+import logging
+import pandas as pd
+import openai
+import os
+
+
 
 load_dotenv()  # Load environment variables from .env file
 
-app = FastAPI()
+
+app = FastAPI() # Create FastAPI app instance
+
 
 # Add CORS middleware
 app.add_middleware(
@@ -47,14 +51,17 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 print(f"API Key: {openai.api_key[:5]}...")  # Print first 5 characters of the API key
 
+# Set up database engine and session
 Base = declarative_base()
 engine = create_engine('sqlite:///chatbot.db', echo=True)
 Session = sessionmaker(bind=engine)
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Define 'Submission' table schema
 class Submission(Base):
     __tablename__ = 'submissions'
 
@@ -69,25 +76,30 @@ class Submission(Base):
 
 Base.metadata.create_all(engine)
 
+# Model for chat input with optional category and context
 class ChatInput(BaseModel):
     message: str
     category_id: Optional[int] = None
     context: Optional[List[dict]] = []
 
+# Model representing a service with associated category and question funnel
 class Service(BaseModel):
     category_id: int
     category_name: str
     service_id: int
     question_funnel: str
 
+# Model representing a service category
 class Category(BaseModel):
     category_id: int
     category_name: str
 
+# Model representing a question with multiple choice options
 class Question(BaseModel):
     question: str
     options: List[str]
 
+# Model representing a user's personal information
 class PersonalInfo(BaseModel):
     name: str
     email: EmailStr
@@ -137,6 +149,7 @@ async def chat(chat_input: ChatInput):
         logger.error(f"Error in chat endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     
+
 def get_current_question(category_id, context):
     if not context:
         return get_first_question(category_id)
@@ -190,7 +203,6 @@ def should_show_form(context, ai_message):
 
 def get_next_question(category_id, context, ai_message):
     # Logic to determine the next question based on the category and conversation flow
-    # This is a simplified example. You might want to implement more complex logic.
     if "what type of" in ai_message.lower():
         return ai_message
     return None

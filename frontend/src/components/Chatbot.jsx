@@ -9,6 +9,7 @@ import axios from 'axios';
 const API_URL = 'http://localhost:8000';
 
 function Chatbot() {
+  // State variables
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [serviceId, setServiceId] = useState(null);
@@ -32,16 +33,18 @@ function Chatbot() {
   const toast = useToast();
   const messagesEndRef = useRef(null);
 
+  // Fetch categories on component mount
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  // Scroll to bottom of chat when messages update
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
+  // Handle iframe parameters
   useEffect(() => {
-    // Function to get URL parameters
     const getUrlParams = () => {
       const searchParams = new URLSearchParams(window.location.search);
       const params = {};
@@ -51,20 +54,18 @@ function Chatbot() {
       return params;
     };
 
-    // Set iframe parameters
     const params = getUrlParams();
     setIframeParams(params);
 
-    // If category_id is provided, initialize the chat with that category
+    // Initialize chat with category from URL if provided
     if (params.category_id) {
       const categoryId = Number(params.category_id);
       setSelectedCategory(categoryId);
       handleCategorySelect(categoryId);
     }
-
-    // You can add more initialization logic here based on other parameters
   }, []);
 
+  // Fetch categories from API
   const fetchCategories = async () => {
     try {
       const response = await axios.get(`${API_URL}/categories`);
@@ -81,6 +82,7 @@ function Chatbot() {
     }
   };
 
+  // Handle category selection
   const handleCategorySelect = async (categoryId) => {
     try {
       const response = await axios.get(`${API_URL}/next_question/${categoryId}`);
@@ -99,6 +101,7 @@ function Chatbot() {
     }
   };
 
+  // Handle sending messages (user input or selected options)
   const handleSend = async (message = input) => {
     if (message.trim()) {
       const userMessage = { role: 'user', content: message };
@@ -147,10 +150,12 @@ function Chatbot() {
     }
   };
 
+  // Handle option button clicks
   const handleOptionClick = (option) => {
     handleSend(option);
   };
 
+  // Handle changes in personal information form
   const handlePersonalInfoChange = (e) => {
     const { name, value } = e.target;
     setPersonalInfo(prevInfo => ({
@@ -159,6 +164,7 @@ function Chatbot() {
     }));
   };
 
+  // Handle form submission
   const handleSubmit = async () => {
     if (validateForm()) {
       try {
@@ -189,6 +195,7 @@ function Chatbot() {
     }
   };
 
+  // Reset the conversation
   const resetConversation = () => {
     setMessages([]);
     setSelectedCategory(null);
@@ -203,10 +210,12 @@ function Chatbot() {
     });
   };
 
+  // Scroll to bottom of chat
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }
 
+  // Validate form inputs
   const validateForm = () => {
     const newErrors = {};
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(personalInfo.email)) {
@@ -222,27 +231,32 @@ function Chatbot() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Handle confirmation before submitting form
   const handleConfirmSubmit = () => {
     if (validateForm()) {
       setIsConfirmOpen(true);
     }
   };
 
+  // Handle final submission after confirmation
   const handleFinalSubmit = () => {
     setIsConfirmOpen(false);
     handleSubmit();
   };
 
+  // Error message component
   const ErrorMessage = ({ message }) => (
     <Box color="red.500" mt={2}>
       <Text fontSize="sm">{message}</Text>
     </Box>
   );
 
+  // Render component
   return (
     <Box width="100%" height="90vh" display="flex" justifyContent="center" alignItems="center" bg="transparent">
       <Box width="400px" maxHeight="80vh" overflow="auto" p={4} borderWidth={1} borderRadius="lg" boxShadow="lg" bg="white">
         <VStack spacing={4} align="stretch">
+          {/* Category selection dropdown */}
           <Select 
             size="sm"
             placeholder="Select a category"
@@ -259,26 +273,7 @@ function Chatbot() {
             ))}
           </Select>
 
-          {/*
-            {options.length > 0 && (
-              <Flex wrap="wrap" justifyContent="center" mt={2}>
-                {options.map((option, index) => (
-                  <Button
-                    key={index}
-                    size="xs"
-                    onClick={() => handleOptionClick(option)}
-                    m={1}
-                    colorScheme="teal"
-                    variant="outline"
-                    _hover={{ bg: 'teal.50' }}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </Flex>
-            )}
-          */}
-    
+          {/* Chat messages and options */}
           <Box height="300px" overflowY="auto" p={3} bg="gray.50" borderRadius="md">
             {messages.map((message, index) => (
               <Flex key={index} direction="column" mb={2}>
@@ -327,6 +322,7 @@ function Chatbot() {
             <Box ref={messagesEndRef} />
           </Box>
     
+          {/* User input area */}
           {!showForm && (
             <VStack>
               <Input
@@ -340,6 +336,7 @@ function Chatbot() {
             </VStack>
           )}
     
+          {/* Personal information form */}
           {showForm && (
             <Box as="form" onSubmit={handleSubmit} p={3} borderWidth={1} borderRadius="md">
               <VStack spacing={3}>
@@ -355,10 +352,12 @@ function Chatbot() {
             </Box>
           )}
 
+          {/* Reset conversation button */}
           <Button size="sm" onClick={() => setIsResetConfirmOpen(true)} colorScheme="red" width="100%">
              Reset Conversation
           </Button>
 
+          {/* Reset confirmation modal */}
           <Modal isOpen={isResetConfirmOpen} onClose={() => setIsResetConfirmOpen(false)}>
             <ModalOverlay />
             <ModalContent>
@@ -378,6 +377,7 @@ function Chatbot() {
             </ModalContent>
           </Modal>
           
+          {/* Submission confirmation modal */}
           <Modal isOpen={isConfirmOpen} onClose={() => setIsConfirmOpen(false)}>
             <ModalOverlay />
             <ModalContent>
