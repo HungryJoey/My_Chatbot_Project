@@ -58,9 +58,11 @@ The chatbot is designed to be embedded in other websites via an iframe, with the
 	npm install  # For frontend
 	pip install -r requirements.txt  # For backend
 3. Set up environment variables (see `.env.example`)
-4. Run the backend:
+4. Activate the virtual evivroment:
+	venv\Scripts\activate
+5. Run the backend:
 	uvicorn main:app --reload
-5. Run the frontend:
+6. Run the frontend:
 	npm run dev
 
 
